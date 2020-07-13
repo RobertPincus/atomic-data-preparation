@@ -21,7 +21,7 @@ campaign = "EUREC4A"
 activity = "ATOMIC"
 platform = "P3"
 instrument = "Flight-Level"
-data_version = "0.5.2"
+data_version = "0.5.3"
 filePrefix = "{}_{}".format(platform, instrument)
 dataDir = pathlib.Path("Fairall-summary-data/flight-level-summary")
 
@@ -80,6 +80,9 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     # Create a new dataset with time coordinates
     #
     subset = xr.Dataset({"time":[datetime.datetime(year, month, day, hours[i], mins[i], secs[i]) for i in range(hours.size)]})
+    #
+    # Should we also remove time on the ground? 
+    #
 
     for key, value in var_mapping.items():
         atts = full[value].attrs
@@ -102,8 +105,8 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     #
     # Water vapor mixing ratio
     #
-    subset["Q"] = qair3(subset.press,  subset.Ta, subset.RH)
-    subset.Q.attrs = {"units":"g/kg", "Description":"Water vapor mixing ratio"}
+    subset["q"] = qair3(subset.press,  subset.Ta, subset.RH)
+    subset.q.attrs = {"units":"g/kg", "Description":"Water vapor mixing ratio"}
 
     # Revisit attributes: units for (Td, Ta ?) -> K?
     # Provide day-of-year and decimal version?
