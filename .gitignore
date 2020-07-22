@@ -1,0 +1,8 @@
+# Data
+*.nc
+*.cdf
+
+selling-points
+Flights
+
+.DS_Store
