@@ -26,11 +26,11 @@ files = sorted(dataDir.joinpath("Fairall_Level_1").glob("*.cdf"))
 #
 # A little more compliance with CF: lat/lon names, units, temperature C -> K
 #
-ds = xr.open_mfdataset(files, combine='by_coords').rename({"T":"temperature","lat":"latitude", "lon":"longitude"}).drop(["base_time", "time_offset"])
-ds.longitude.attrs["units"] = "degrees_east"
-ds.longitude.attrs  ["standard_name"] = "longitude"
-ds.latitude.attrs ["units"]  = "degrees_north"
-ds.latitude.attrs   ["standard_name"] = "latitude"
+ds = xr.open_mfdataset(files, combine='by_coords').rename({"T":"temperature","lat":"lat", "lon":"lon"}).drop(["base_time", "time_offset"])
+ds.lon.attrs["units"] = "degrees_east"
+ds.lon.attrs        ["standard_name"] = "longitude"
+ds.lat.attrs ["units"]  = "degrees_north"
+ds.lat.attrs        ["standard_name"] = "latitude"
 ds.time.attrs       ["standard_name"] = "time"
 ds.time.attrs["description"] = "AXBT launch time and date"
 ds.depth.attrs      ["standard_name"] = "depth"

@@ -29,8 +29,8 @@ dataDir = pathlib.Path("data/flight-level-summary")
 # Mapping between variables in the summary and the file provided by AOC
 #
 var_mapping = {
-    "latitude":"LATref", # Also in Fairall/de Boer summary file
-    "longitude":"LONref", #
+    "lat":"LATref", # Also in Fairall/de Boer summary file
+    "lon":"LONref", #
     "alt":"ALTref", #
     "pitch":"PITCHref", #
     "roll":"ROLLref", #
@@ -59,6 +59,9 @@ var_mapping = {
 # CF standard names, where sensible
 #
 name_mapping = {
+    "time":"time",
+    "lon":"longitude",
+    "lat":"latitude",
     "ws":"wind_speed",
     "wd":"wind_to_direction",
     "Td":"dew_point_temperature",
@@ -119,11 +122,9 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     for v in ["Td", "Ta"]:
         subset[v].attrs["units"] = "K"
         subset[v] += 273.15
-    subset.latitude.attrs ["units"] = "degrees_north"
-    subset.longitude.attrs["units"] = "degrees_east"
+    subset.lat.attrs ["units"] = "degrees_north"
+    subset.lon.attrs["units"] = "degrees_east"
 
-    for v in ["time", "longitude", "latitude"]:
-        subset[v].attrs["standard_name"] = v
     for key, value in name_mapping.items():
         subset[key].attrs["standard_name"] = value
 
