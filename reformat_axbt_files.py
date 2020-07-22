@@ -17,20 +17,25 @@ campaign = "EUREC4A"
 activity = "ATOMIC"
 platform = "P3"
 instrument = "AXBT"
-data_version = "0.5.2"
+data_version = "v0.6"
 
 filePrefix = "{}_{}".format(platform, instrument)
-dataDir = pathlib.Path("Fairall-summary-data/AXBT")
-files = sorted(dataDir.glob("*.cdf"))
+dataDir = pathlib.Path("data/AXBT")
+files = sorted(dataDir.joinpath("Fairall_Level_1").glob("*.cdf"))
 
 #
-# A little more compliance with CF: names of lat/lon units, temperature C -> K
+# A little more compliance with CF: lat/lon names, units, temperature C -> K
 #
-ds = xr.open_mfdataset(files, combine='by_coords').rename({"T":"temperature"}).drop(["base_time", "time_offset"])
-ds.lon.attrs["units"] = "deg_east"
-ds.lat.attrs["units"] = "deg_north"
+ds = xr.open_mfdataset(files, combine='by_coords').rename({"T":"temperature","lat":"latitude", "lon":"longitude"}).drop(["base_time", "time_offset"])
+ds.longitude.attrs["units"] = "degrees_east"
+ds.longitude.attrs  ["standard_name"] = "longitude"
+ds.latitude.attrs ["units"]  = "degrees_north"
+ds.latitude.attrs   ["standard_name"] = "latitude"
+ds.time.attrs       ["standard_name"] = "time"
 ds.time.attrs["description"] = "AXBT launch time and date"
+ds.depth.attrs      ["standard_name"] = "depth"
 ds.temperature.attrs["standard_name"] = "sea_water_temperature"
+
 if ds.temperature.attrs["units"] is "C":
     ds.temperature.attrs["units"] = "K"
     ds["temperature"] += 273.15
@@ -54,6 +59,7 @@ for out in L2:
     fileName += "_{:02d}{:02d}{:02d}.nc".format(datetime.hour.values, datetime.minute.values, datetime.second.values)
     print(fileName)
     out.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+                 "Conventions":"CF-1.7",
                  "campaign":campaign,
                  "activity":activity,
                  "platform":platform,
@@ -75,6 +81,7 @@ L3["depth"].attrs = L2[0].depth.attrs
 L3_dir = dataDir.joinpath("Level_3")
 L3_dir.mkdir(parents=True, exist_ok=True)
 L3.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+             "Conventions":"CF-1.7",
              "campaign":campaign,
              "activity":activity,
              "platform":platform,
