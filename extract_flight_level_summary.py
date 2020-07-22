@@ -101,22 +101,6 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
                                    coords={"time":subset.time},
                                    attrs = atts)
     #
-    # CF compliance
-    #
-    for v in ["pitch", "roll", "cog", "wd", "hed"]:
-        subset[v].attrs["units"] = "degrees"
-    for v in ["Td", "Ta"]:
-        subset[v].attrs["units"] = "K"
-        subset[v] += 273.15
-    subset.latitude.attrs["units"] = "degrees_north"
-    subset.longitude.attrs["units"] = "degrees_east"
-
-    for v in ["time", "longitude", "latitude"]:
-        subset[v].attrs["standard_name"] = v
-    for key, value in name_mapping.items():
-        subset[key].attrs["standard_name"] = value
-
-    #
     # Pitch used for radar calculations
     #
     subset["pitchradar"]      = subset.pitch
@@ -127,9 +111,21 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     #
     subset["q"] = qair3(subset.press,  subset.Ta, subset.RH)
     subset.q.attrs = {"units":"g/kg", "Description":"Water vapor mixing ratio"}
+    #
+    # CF compliance
+    #
+    for v in ["pitch", "roll", "cog", "wd", "hed"]:
+        subset[v].attrs["units"] = "degrees"
+    for v in ["Td", "Ta"]:
+        subset[v].attrs["units"] = "K"
+        subset[v] += 273.15
+    subset.latitude.attrs ["units"] = "degrees_north"
+    subset.longitude.attrs["units"] = "degrees_east"
 
-    # Revisit attributes: units for (Td, Ta ?) -> K?
-    # Provide day-of-year and decimal version?
+    for v in ["time", "longitude", "latitude"]:
+        subset[v].attrs["standard_name"] = v
+    for key, value in name_mapping.items():
+        subset[key].attrs["standard_name"] = value
 
     L2_dir = dataDir.joinpath("Level_2")
     L2_dir.mkdir(parents=True, exist_ok=True)
