@@ -21,16 +21,16 @@ campaign = "EUREC4A"
 activity = "ATOMIC"
 platform = "P3"
 instrument = "Flight-Level"
-data_version = "0.5.3"
+data_version = "v0.6"
 filePrefix = "{}_{}".format(platform, instrument)
-dataDir = pathlib.Path("Fairall-summary-data/flight-level-summary")
+dataDir = pathlib.Path("data/flight-level-summary")
 
 #
 # Mapping between variables in the summary and the file provided by AOC
 #
 var_mapping = {
-    "lat":"LATref", # Also in Fairall/de Boer summary file
-    "lon":"LONref", #
+    "latitude":"LATref", # Also in Fairall/de Boer summary file
+    "longitude":"LONref", #
     "alt":"ALTref", #
     "pitch":"PITCHref", #
     "roll":"ROLLref", #
@@ -39,7 +39,7 @@ var_mapping = {
     "wd":"WD.d",
     "sfmrU":"SfmrWS.1",
     "sfmrR":"SfmrRainRate.1",
-    "sst":"TRadD.1",
+#    "sst":"TRadD.1",
     "gs":"GS.d",
     "hed":"THDGref",
     "tas":"TAS.d", #
@@ -54,6 +54,16 @@ var_mapping = {
     "uvel":"UWX.d",
     "vvel":"UWY.d"
 }
+
+#
+# CF standard names, where sensible
+#
+name_mapping = {
+    "ws":"wind_speed",
+    "wd":"wind_to_direction",
+    "Td":"dew_point_temperature",
+    "Ta":"air_temperature",
+    "RH":"relative_humidity"}
 
 for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     aoc_file_name = input_file.name
@@ -73,15 +83,14 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     month = int(aoc_file_name[4:6])
     day   = int(aoc_file_name[6:8])
     #   Hours, mins, secs are in UTC time
+    #   File names are consistent with this - night flight were 8/9, 9/10, 10/11 local time
     #   I ensured that all flights begin and end on the same UTC day, and all night flights were in the same month
-    #   Local time is UTC-5, so any start hours less than 5 UTC have a time coordinate on the next UTC day
-    if(hours[0].values < 5): day += 1
     #
     # Create a new dataset with time coordinates
     #
     subset = xr.Dataset({"time":[datetime.datetime(year, month, day, hours[i], mins[i], secs[i]) for i in range(hours.size)]})
     #
-    # Should we also remove time on the ground? 
+    # Should we also remove time on the ground?
     #
 
     for key, value in var_mapping.items():
@@ -92,16 +101,27 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
                                    coords={"time":subset.time},
                                    attrs = atts)
     #
-    # Units attributes to conform to CF standards
+    # CF compliance
     #
-    subset.lat.attrs["units"] = "deg_north"
-    subset.lon.attrs["units"] = "deg_east"
+    for v in ["pitch", "roll", "cog", "wd", "hed"]:
+        subset[v].attrs["units"] = "degrees"
+    for v in ["Td", "Ta"]:
+        subset[v].attrs["units"] = "K"
+        subset[v] += 273.15
+    subset.latitude.attrs["units"] = "degrees_north"
+    subset.longitude.attrs["units"] = "degrees_east"
+
+    for v in ["time", "longitude", "latitude"]:
+        subset[v].attrs["standard_name"] = v
+    for key, value in name_mapping.items():
+        subset[key].attrs["standard_name"] = value
+
     #
     # Pitch used for radar calculations
     #
-    subset["pitchradar"]      = subset.pitchref
+    subset["pitchradar"]      = subset.pitch
     subset.pitchradar.values -= 1.1
-    subset.pitchradar.assign_attrs({"details":"1.1 degrees subtracted from pitchref to align with W-band radar"})
+    subset.pitchradar.assign_attrs({"details":"1.1 degrees subtracted from pitch to align with W-band radar"})
     #
     # Water vapor mixing ratio
     #
@@ -117,12 +137,13 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     fileName += "_{:02d}{:02d}{:02d}".format(int(hours[0].values), int(mins[0].values), int(secs[0].values)) + ".nc"
     print("Writing " + fileName)
     subset.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
-                     "campaign":campaign,
-                     "activity":activity,
-                     "platform":platform,
-                     "instrument":instrument,
-                     "contact":"Chris Fairall <Chris.Fairall@noaa.gov>",
-                     "version":data_version}
+                    "Conventions":"CF-1.7",
+                    "campaign":campaign,
+                    "activity":activity,
+                    "platform":platform,
+                    "instrument":instrument,
+                    "contact":"Chris Fairall <Chris.Fairall@noaa.gov>",
+                    "version":data_version}
     subset.to_netcdf(L2_dir.joinpath(fileName), encoding={"time":{"units":"seconds since 2020-01-01"}}) # Encoding?
     subset.close()
 
