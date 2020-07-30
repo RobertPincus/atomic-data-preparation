@@ -20,9 +20,9 @@ def qair3(p, x, h):
 campaign = "EUREC4A"
 activity = "ATOMIC"
 platform = "P3"
-instrument = "Flight-Level"
+product = "Flight-Level"
 data_version = "v0.6"
-filePrefix = "{}_{}".format(platform, instrument)
+filePrefix = "{}_{}".format(platform, product)
 dataDir = pathlib.Path("data/flight-level-summary")
 
 #
@@ -68,7 +68,7 @@ name_mapping = {
     "Ta":"air_temperature",
     "RH":"relative_humidity"}
 
-for input_file in sorted(dataDir.glob("2020*_A*.nc")):
+for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
     aoc_file_name = input_file.name
     print ("Opening " + aoc_file_name)
     full = xr.open_dataset(input_file, decode_times = False)
@@ -113,7 +113,7 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     # Water vapor mixing ratio
     #
     subset["q"] = qair3(subset.press,  subset.Ta, subset.RH)
-    subset.q.attrs = {"units":"g/kg", "Description":"Water vapor mixing ratio"}
+    subset.q.attrs = {"units":"g/kg", "Description":"Water vapor mixing ratio (computed from press, Ta, RH)", "standard_name":"humidity_mixing_ratio"}
     #
     # CF compliance
     #
@@ -131,14 +131,15 @@ for input_file in sorted(dataDir.glob("2020*_A*.nc")):
     L2_dir = dataDir.joinpath("Level_2")
     L2_dir.mkdir(parents=True, exist_ok=True)
     fileName  = filePrefix + "_{:04d}{:02d}{:02d}".format(year,month,day)
-    fileName += "_{:02d}{:02d}{:02d}".format(int(hours[0].values), int(mins[0].values), int(secs[0].values)) + ".nc"
+    # fileName += "_{:02d}{:02d}{:02d}".format(int(hours[0].values), int(mins[0].values), int(secs[0].values)) + ".nc"
+    fileName += "_" + data_version + ".nc"
     print("Writing " + fileName)
     subset.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
                     "Conventions":"CF-1.7",
                     "campaign":campaign,
                     "activity":activity,
                     "platform":platform,
-                    "instrument":instrument,
+                    "product":product,
                     "contact":"Chris Fairall <Chris.Fairall@noaa.gov>",
                     "version":data_version}
     subset.to_netcdf(L2_dir.joinpath(fileName), encoding={"time":{"units":"seconds since 2020-01-01"}}) # Encoding?
