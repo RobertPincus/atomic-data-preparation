@@ -21,7 +21,7 @@ campaign = "EUREC4A"
 activity = "ATOMIC"
 platform = "P3"
 product = "Flight-Level"
-data_version = "v0.6"
+data_version = "v0.6.1"
 filePrefix = "{}_{}".format(platform, product)
 dataDir = pathlib.Path("data/flight-level-summary")
 
@@ -104,6 +104,14 @@ for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
                                    coords={"time":subset.time},
                                    attrs = atts)
     #
+    # Water vapor mixing ratio - Chris originally included this derived parameter but I'm not going to,
+    #   leaving it instead for users to compute themselves
+    #
+    if False:
+        subset["q"] = qair3(subset.press,  subset.Ta, subset.RH)
+        subset.q.attrs = {"units":"g/kg", "Description":"Water vapor mixing ratio (computed from press, Ta, RH)", "standard_name":"humidity_mixing_ratio"}
+
+    #
     # CF compliance
     #
     for v in ["pitch", "roll", "cog", "wd", "hed"]:
@@ -111,8 +119,12 @@ for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
     for v in ["Td", "Ta"]:
         subset[v].attrs["units"] = "K"
         subset[v] += 273.15
-    subset.lat.attrs ["units"] = "degrees_north"
+    subset.lat.attrs["units"] = "degrees_north"
     subset.lon.attrs["units"] = "degrees_east"
+    # This doesn't seem to work - it would be best to replace the units to be consistent with
+    #   remote sensing files which use hPa
+    if subset.press.attrs["units"] is "mb":
+         subset.press.attrs["units"] = "hPa"
 
     for key, value in name_mapping.items():
         subset[key].attrs["standard_name"] = value
@@ -123,17 +135,12 @@ for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
     subset["pitchradar"]      = subset.pitch
     subset.pitchradar.values -= 1.1
     subset.pitchradar.assign_attrs({"details":"1.1 degrees subtracted from pitch to align with W-band radar"})
-    #
-    # Water vapor mixing ratio - not sure I should include this, actually. 
-    #
-    subset["q"] = qair3(subset.press,  subset.Ta, subset.RH)
-    subset.q.attrs = {"units":"g/kg", "Description":"Water vapor mixing ratio (computed from press, Ta, RH)", "standard_name":"humidity_mixing_ratio"}
 
     L2_dir = dataDir.joinpath("Level_2")
     L2_dir.mkdir(parents=True, exist_ok=True)
     fileName  = filePrefix + "_{:04d}{:02d}{:02d}".format(year,month,day)
     # fileName += "_{:02d}{:02d}{:02d}".format(int(hours[0].values), int(mins[0].values), int(secs[0].values)) + ".nc"
-    fileName += "_" + data_version + ".nc"
+    fileName += ".nc"
     print("Writing " + fileName)
     subset.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
                     "Conventions":"CF-1.7",
@@ -145,6 +152,7 @@ for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
                     "version":data_version}
     subset.to_netcdf(L2_dir.joinpath(fileName), encoding={"time":{"units":"seconds since 2020-01-01"}}) # Encoding?
     subset.close()
+    full.close()
 
 
 #
