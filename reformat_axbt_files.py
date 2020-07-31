@@ -50,6 +50,9 @@ ds["axbt_id"] = xr.DataArray(["P3-{:02d}{:02d}_a{:03d}".format(ds.time[i].dt.mon
 L2 = []
 for i in range(ds.time.size):
     out = ds.isel(time=i).swap_dims({"sample":"depth"}).reset_coords().dropna(dim="depth", subset=["temperature", "depth"], how="any")
+    for v in ["depth", "time"] :
+        out[v].attrs = ds[v].attrs
+    out["time"].attrs["standard_name"] = "time"
     L2.append(out)
 
 #
@@ -79,7 +82,10 @@ for out in L2:
 # Interpolate onto .1 m depth spacing to 1 km.
 #
 L3 = xr.concat([i.interp(depth=np.arange(0, 1000., .1)) for i in L2], dim="time")
-L3["depth"].attrs = L2[0].depth.attrs
+for v in ["depth", "time"] :
+    L3[v].attrs = ds[v].attrs
+L3["time"].attrs["standard_name"] = "time"
+
 #
 # Level 3A file
 #
