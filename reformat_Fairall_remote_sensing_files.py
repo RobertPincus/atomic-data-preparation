@@ -19,7 +19,7 @@ data_version = "v0.5.2"
 
 filePrefix = "{}_{}".format(platform, product)
 dataDir = pathlib.Path("data/remote-sensing")
-files = sorted(dataDir.glob("*.cdf"))
+files = sorted(dataDir.joinpath("Level_3pre").glob("*.cdf"))
 name_mapping = {
     "time":"time",
     "lon":"longitude",
