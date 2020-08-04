@@ -8,3 +8,5 @@ Flights
 .DS_Store
 
 .ipynb_checkpoints
+
+*.xlsw
