@@ -21,7 +21,7 @@ campaign = "EUREC4A"
 activity = "ATOMIC"
 platform = "P3"
 product = "Flight-Level"
-data_version = "v0.6.1"
+data_version = "v0.9"
 filePrefix = "{}_{}".format(platform, product)
 dataDir = pathlib.Path("data/flight-level-summary")
 
@@ -91,7 +91,7 @@ for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
     #
     # Create a new dataset with time coordinates
     #
-    subset = xr.Dataset({"time":[datetime.datetime(year, month, day, hours[i], mins[i], secs[i]) for i in range(hours.size)]})
+    subset = xr.Dataset(coords = {'time':[datetime.datetime(year, month, day, hours[i], mins[i], secs[i]) for i in range(hours.size)]})
     #
     # Should we also remove time on the ground?
     #
@@ -140,7 +140,7 @@ for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
     L2_dir.mkdir(parents=True, exist_ok=True)
     fileName  = filePrefix + "_{:04d}{:02d}{:02d}".format(year,month,day)
     # fileName += "_{:02d}{:02d}{:02d}".format(int(hours[0].values), int(mins[0].values), int(secs[0].values)) + ".nc"
-    fileName += ".nc"
+    fileName += "_" + data_version + ".nc"
     print("Writing " + fileName)
     subset.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
                     "Conventions":"CF-1.7",
@@ -150,7 +150,7 @@ for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
                     "product":product,
                     "contact":"Chris Fairall <Chris.Fairall@noaa.gov>",
                     "version":data_version}
-    subset.to_netcdf(L2_dir.joinpath(fileName), encoding={"time":{"units":"seconds since 2020-01-01"}}) # Encoding?
+    subset.to_netcdf(L2_dir.joinpath(fileName), encoding={"time":{"units":"seconds since 2020-01-01","dtype":"double"}})
     subset.close()
     full.close()
 
