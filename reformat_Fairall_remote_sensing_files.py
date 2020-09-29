@@ -12,10 +12,10 @@ import time
 import pathlib
 
 campaign = "EUREC4A"
-activity = "ATOMIC"
+project = "ATOMIC"
 platform = "P3"
 product = "Remote-sensing"
-data_version = "v0.5.2"
+data_version = "v1.0"
 
 filePrefix = "{}_{}".format(platform, product)
 dataDir = pathlib.Path("data/remote-sensing")
@@ -56,7 +56,7 @@ for f in files:
     out.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
                  "Conventions":"CF-1.7",
                  "campaign":campaign,
-                 "activity":activity,
+                 "project":project,
                  "platform":platform,
                  "product":product,
                  "contact":"Chris Fairall <Chris.Fairall@noaa.gov>",

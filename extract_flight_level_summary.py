@@ -18,11 +18,11 @@ def qair3(p, x, h):
     return(es*622./(p-.378*es))
 
 campaign = "EUREC4A"
-activity = "ATOMIC"
+project = "ATOMIC"
 platform = "P3"
 product = "Flight-Level"
-data_version = "v0.9"
-filePrefix = "{}_{}".format(platform, product)
+data_version = "v1.0"
+filePrefix = "{}_{}_{}_{}".format(campaign, project, platform, product)
 dataDir = pathlib.Path("data/flight-level-summary")
 
 #
@@ -145,7 +145,7 @@ for input_file in sorted(dataDir.joinpath("Level_1").glob("2020*_A*.nc")):
     subset.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
                     "Conventions":"CF-1.7",
                     "campaign":campaign,
-                    "activity":activity,
+                    "project":project,
                     "platform":platform,
                     "product":product,
                     "contact":"Chris Fairall <Chris.Fairall@noaa.gov>",

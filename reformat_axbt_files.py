@@ -14,7 +14,7 @@ import time
 import pathlib
 
 campaign = "EUREC4A"
-activity = "ATOMIC"
+project = "ATOMIC"
 platform = "P3"
 instrument = "AXBT"
 data_version = "v0.7"
@@ -69,7 +69,7 @@ for out in L2:
     out.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
                  "Conventions":"CF-1.7",
                  "campaign":campaign,
-                 "activity":activity,
+                 "project":project,
                  "platform":platform,
                  "instrument":instrument,
                  "contact":"Chris Fairall <Chris.Fairall@noaa.gov>",
@@ -94,7 +94,7 @@ L3_dir.mkdir(parents=True, exist_ok=True)
 L3.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
              "Conventions":"CF-1.7",
              "campaign":campaign,
-             "activity":activity,
+             "project":project,
              "platform":platform,
              "instrument":instrument,
              "contact":"Chris Fairall <Chris.Fairall@noaa.gov>",
