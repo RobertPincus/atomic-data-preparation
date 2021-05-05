@@ -87,7 +87,6 @@ name_mapping = {
 
 for d in flight_dates:
     aoc_file_name = dataDir.joinpath("Level_1").joinpath(f"{d:%Y%m%d}" + "I1_")
-    print (aoc_file_name)
     try:
         full = xr.open_dataset(aoc_file_name.as_posix() + "AC.nc",  decode_times = False)
     except:
@@ -151,7 +150,7 @@ for d in flight_dates:
 
     L2_dir = dataDir.joinpath("Level_2")
     L2_dir.mkdir(parents=True, exist_ok=True)
-    fileName  = filePrefix + f"{d:%Y%m%d}"
+    fileName  = filePrefix + f"{d:_%Y%m%d}"
     fileName += "_" + data_version + ".nc"
     print("Writing " + fileName)
     subset.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
