@@ -20,10 +20,15 @@ product = "microphysics"
 data_version = "v1.0"
 filePrefix = "{}_{}_{}_{}".format(campaign, project, platform, product)
 
-dates = [datetime.date(2020, 2,  5)]
+dates = [datetime.date(2020, 1, 31),
+         datetime.date(2020, 2,  3),
+         datetime.date(2020, 2,  4),
+         datetime.date(2020, 2,  5),
+         datetime.date(2020, 2,  9),
+         datetime.date(2020, 2, 10)]
 
+dataDir = pathlib.Path("data/ATOMIC_microphysics_nc_files")
 for d in dates:
-    dataDir = pathlib.Path("data/ATOMIC_microphysics_processed"+ f"{d:_%Y%m%d}")
     suffix = f"{d:_%Y%m%d}" + ".nc"
     #
     # Two synthesized/merged  datasets
@@ -37,6 +42,10 @@ for d in dates:
     inst = xr.merge([xr.open_dataset(dataDir.joinpath(l + suffix)).rename({
                         v:l + "_" + v for v in ["number_concentration", "size", "size_bnds"]})
                         for l in ["CAS", "CIP", "PIP"]])
+    for l in ["CAS", "CIP", "PIP"]:
+        inst[l + "_size"                ].attrs["description"] = "Bin-mean sizes measured by "                     + l + " instrument"
+        inst[l + "_size_bnds"           ].attrs["description"] = "Bin size boundaries measured by "                + l + " instrument"
+        inst[l + "_number_concentration"].attrs["description"] = "Size-resolved number concentration measured by " + l + " instrument"
     combo = xr.merge([synth, inst])
     combo.attrs = {"creation_date":time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
                    "Conventions":"CF-1.7",
