@@ -1,3 +1,12 @@
+#!/usr/env/python
+
+#
+# Combine five microphysics files from Mason Leandro at UCSD,
+#   two containing best-estimate size distributions and three
+#   containing measurements from individual instruments, to
+#   produce a single file
+#
+
 import xarray as xr
 import numpy  as np
 import pathlib
@@ -14,11 +23,17 @@ filePrefix = "{}_{}_{}_{}".format(campaign, project, platform, product)
 dates = [datetime.date(2020, 2,  5)]
 
 for d in dates:
-    dataDir = pathlib.Path("ATOMIC_microphysics_processed"+ f"{d:_%Y%m%d}")
+    dataDir = pathlib.Path("data/ATOMIC_microphysics_processed"+ f"{d:_%Y%m%d}")
     suffix = f"{d:_%Y%m%d}" + ".nc"
+    #
+    # Two synthesized/merged  datasets
+    #
     synth = xr.merge([xr.open_dataset(dataDir.joinpath(l + suffix)).rename({
                         v:l + "_" + v for v in ["number_concentration", "effective_radius"]})
                         for l in ["hydrometeor", "aerosol"]])
+    #
+    # Three files for individual instruments
+    #
     inst = xr.merge([xr.open_dataset(dataDir.joinpath(l + suffix)).rename({
                         v:l + "_" + v for v in ["number_concentration", "size", "size_bnds"]})
                         for l in ["CAS", "CIP", "PIP"]])
